@@ -1,16 +1,30 @@
 import React, { useState } from 'react';
 import { INVENTORY, PRODUCTS } from '../services/mockData';
-import { Archive, AlertOctagon, Plus, Search, Filter, Sparkles, FileText, Link } from 'lucide-react';
+import { Archive, AlertOctagon, Plus, Search, Filter, Sparkles, FileText, Link, MapPin } from 'lucide-react';
+import { StoreLocation } from '../types';
 
-export const Inventory: React.FC = () => {
+interface InventoryProps {
+  selectedStore: StoreLocation;
+}
+
+export const Inventory: React.FC<InventoryProps> = ({ selectedStore }) => {
   const [filter, setFilter] = useState('');
 
   const inventoryList = PRODUCTS.map(product => {
-    const item = INVENTORY.find(i => i.productId === product.id);
+    // Filter inventory items based on selected store
+    const itemsInStore = INVENTORY.filter(i => 
+      i.productId === product.id && (selectedStore === 'Todas' || i.store === selectedStore)
+    );
+    
+    // Sum quantities if "Todas" is selected, otherwise just take the single store quantity
+    const totalQty = itemsInStore.reduce((acc, curr) => acc + curr.quantity, 0);
+    // Use the lowest minStock or an arbitrary one for "Todas"
+    const minStock = itemsInStore.length > 0 ? itemsInStore[0].minStock : 5;
+
     return { 
       product, 
-      quantity: item ? item.quantity : 0, 
-      minStock: item ? item.minStock : 0 
+      quantity: totalQty, 
+      minStock: selectedStore === 'Todas' ? minStock * itemsInStore.length : minStock 
     };
   }).filter(item => item.product.name.toLowerCase().includes(filter.toLowerCase()));
 
@@ -43,7 +57,14 @@ export const Inventory: React.FC = () => {
       </div>
 
       <div className="flex flex-col md:flex-row justify-between items-center pt-4 gap-4">
-        <h2 className="text-xl font-heading font-bold text-white tracking-wide">Catálogo Branco & Cia</h2>
+        <div>
+           <h2 className="text-xl font-heading font-bold text-white tracking-wide">Catálogo Branco & Cia</h2>
+           {selectedStore !== 'Todas' && (
+             <p className="text-xs text-branco-muted flex items-center gap-1 mt-1">
+               <MapPin size={10} /> Exibindo estoque de {selectedStore}
+             </p>
+           )}
+        </div>
         <div className="flex gap-2 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />

@@ -6,32 +6,38 @@ import { Inventory } from './components/Inventory';
 import { Team } from './components/Team';
 import { Finance } from './components/Finance';
 import { Settings } from './components/Settings';
-import { ViewState } from './types';
+import { ViewState, StoreLocation } from './types';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
+  const [selectedStore, setSelectedStore] = useState<StoreLocation>('Todas');
 
   const renderView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard selectedStore={selectedStore} />;
       case 'copilot_crm':
         return <CopilotCRM />;
       case 'inventory':
-        return <Inventory />;
+        return <Inventory selectedStore={selectedStore} />;
       case 'team':
-        return <Team />;
+        return <Team selectedStore={selectedStore} />;
       case 'finance':
         return <Finance />;
       case 'settings':
         return <Settings />;
       default:
-        return <Dashboard />;
+        return <Dashboard selectedStore={selectedStore} />;
     }
   };
 
   return (
-    <Layout currentView={currentView} onNavigate={setCurrentView}>
+    <Layout 
+      currentView={currentView} 
+      onNavigate={setCurrentView}
+      selectedStore={selectedStore}
+      onStoreChange={setSelectedStore}
+    >
       {renderView()}
     </Layout>
   );

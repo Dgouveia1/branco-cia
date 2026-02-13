@@ -1,31 +1,46 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { ArrowUpRight, Play, Pause, Bot, MessageSquare, AlertTriangle, TrendingUp, Zap, Users, Sparkles } from 'lucide-react';
+import { ArrowUpRight, Play, Pause, Bot, MessageSquare, AlertTriangle, TrendingUp, Zap, Users, Sparkles, UserX, Info } from 'lucide-react';
 import { FINANCIAL_DATA, BENCHMARK_DATA, LEADS } from '../services/mockData';
+import { StoreLocation } from '../types';
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  selectedStore: StoreLocation;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ selectedStore }) => {
   const [isPlaying, setIsPlaying] = React.useState(false);
 
-  // Filter urgent leads
-  const urgentLeads = LEADS.filter(l => l.status === 'quente' || l.status === 'shadow');
+  // Filter urgent leads based on store
+  const urgentLeads = LEADS.filter(l => 
+    (selectedStore === 'Todas' || l.store === selectedStore) &&
+    (l.status === 'quente' || l.status === 'shadow')
+  );
+
+  // Adjust financial data based on store (Simplified simulation)
+  const chartData = FINANCIAL_DATA.map(d => ({
+    name: d.name,
+    revenue: selectedStore === 'Todas' ? d.revenue : Math.round(d.revenue / 5),
+    expenses: selectedStore === 'Todas' ? d.expenses : Math.round(d.expenses / 5),
+  }));
 
   return (
     <div className="space-y-8">
       
       {/* TOP SECTION: COPILOT BRIEFING (Daily Podcast) */}
-      <div className="bg-gradient-to-r from-copilot-dark to-black border border-copilot-primary/30 rounded-3xl p-6 md:p-8 relative overflow-hidden group">
+      <div className="bg-gradient-to-r from-copilot-dark to-black border border-copilot-primary/30 rounded-3xl p-6 md:p-8 relative overflow-hidden group shadow-2xl shadow-copilot-dark/20">
          <div className="absolute top-0 right-0 w-64 h-64 bg-copilot-primary blur-[120px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
          
          <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
             <div className="flex-1">
                <div className="flex items-center gap-2 mb-2 text-copilot-glow font-bold uppercase tracking-widest text-xs">
-                 <Bot size={14} /> Briefing Diário • 08:00 AM
+                 <Bot size={14} /> Briefing Diário • {selectedStore === 'Todas' ? 'Rede Branco & Cia' : `Loja ${selectedStore}`}
                </div>
                <h2 className="text-2xl md:text-3xl font-heading font-bold text-white mb-2">
-                 Bom dia, equipe Branco&Cia. Você tem <span className="text-copilot-glow">R$ 12.5k</span> em oportunidades críticas hoje.
+                 Bom dia. <span className="text-copilot-glow">R$ {(urgentLeads.length * 4200 / 1000).toFixed(1)}k</span> em oportunidades críticas em {selectedStore === 'Todas' ? 'suas lojas' : selectedStore}.
                </h2>
                <p className="text-branco-muted text-sm max-w-xl">
-                 Identifiquei 3 leads quentes sem resposta há mais de 2h e um "Shadow Lead" no contato do Ricardo. O tráfego de loja aumentou 15% ontem.
+                 Identifiquei {urgentLeads.length} leads quentes sem resposta há mais de 2h. {selectedStore === 'Todas' ? 'Votuporanga teve o melhor desempenho ontem.' : 'O tráfego de loja aumentou 15% ontem.'}
                </p>
             </div>
             
@@ -55,10 +70,37 @@ export const Dashboard: React.FC = () => {
          </div>
       </div>
 
+      {/* TUTORIAL CARDS: Como o Copiloto Ajuda */}
+      <div>
+        <h3 className="text-sm font-bold text-branco-muted uppercase tracking-widest mb-4 flex items-center gap-2">
+          <Sparkles size={14} className="text-copilot-glow"/> Como o Copiloto potencializa a Branco & Cia
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <TutorialCard 
+            title="Caça aos Shadow Leads" 
+            description="O sistema varre o WhatsApp dos vendedores e encontra clientes que foram atendidos mas não cadastrados no CRM."
+            icon={UserX}
+            metric="2 Detectados Hoje"
+          />
+          <TutorialCard 
+            title="Auditoria D-1" 
+            description="Toda madrugada, analisamos todas as conversas do dia anterior para te entregar um resumo de onde a equipe falhou."
+            icon={Bot}
+            metric="100% Automático"
+          />
+          <TutorialCard 
+            title="Aceleração de Resposta" 
+            description="Medimos quanto tempo cada loja (Fernandópolis, Jales, etc) demora para responder. Velocidade = Venda."
+            icon={Zap}
+            metric="Meta: < 5min"
+          />
+        </div>
+      </div>
+
       {/* METRICS GRID: Hybrid Retail + AI */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard 
-          title="Leads Recuperados (IA)" 
+          title="Leads Recuperados" 
           value="14" 
           subtitle="R$ 8.4k em potencial"
           icon={Zap} 
@@ -66,7 +108,7 @@ export const Dashboard: React.FC = () => {
         />
         <StatCard 
           title="Vendas Totais" 
-          value="R$ 1.250" 
+          value={`R$ ${(selectedStore === 'Todas' ? 12500 : 2500).toLocaleString('pt-BR')}`} 
           subtitle="Hoje, até agora"
           icon={TrendingUp} 
           color="text-white"
@@ -96,7 +138,7 @@ export const Dashboard: React.FC = () => {
           <div className="flex justify-between items-center mb-6">
              <div>
                <h3 className="font-heading font-bold text-lg text-white">Performance de Vendas</h3>
-               <p className="text-xs text-branco-muted">Comparativo Semestral</p>
+               <p className="text-xs text-branco-muted">Comparativo Semestral ({selectedStore})</p>
              </div>
              <div className="flex gap-2">
                <span className="flex items-center gap-1 text-xs text-branco-muted"><div className="w-2 h-2 rounded-full bg-white"></div> Você</span>
@@ -105,7 +147,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={FINANCIAL_DATA}>
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#ffffff" stopOpacity={0.1}/>
@@ -145,13 +187,30 @@ export const Dashboard: React.FC = () => {
            
            <div className="bg-copilot-dark/30 border border-copilot-primary/20 p-4 rounded-xl mt-4">
               <p className="text-xs text-copilot-glow font-bold mb-1 flex items-center gap-1"><Sparkles size={10}/> Insight do Copiloto</p>
-              <p className="text-xs text-zinc-400">Sua taxa de conversão está 6% acima da média. Parabéns! Foco em manter o tempo de resposta baixo.</p>
+              <p className="text-xs text-zinc-400">
+                {selectedStore === 'Fernandópolis' 
+                 ? 'Fernandópolis tem 20% mais conversão que a média.' 
+                 : 'Sua taxa de conversão está 6% acima da média. Parabéns!'}
+              </p>
            </div>
         </div>
       </div>
     </div>
   );
 };
+
+const TutorialCard = ({ title, description, icon: Icon, metric }: any) => (
+  <div className="bg-branco-card border border-branco-border p-5 rounded-2xl hover:border-copilot-primary/50 transition-colors group">
+    <div className="flex justify-between items-start mb-3">
+       <div className="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white group-hover:text-copilot-glow group-hover:border-copilot-primary/30 transition-all">
+          <Icon size={20} />
+       </div>
+       <span className="text-[10px] font-bold bg-zinc-900 text-zinc-400 px-2 py-1 rounded border border-zinc-800">{metric}</span>
+    </div>
+    <h4 className="text-white font-bold text-base mb-1">{title}</h4>
+    <p className="text-xs text-zinc-500 leading-relaxed">{description}</p>
+  </div>
+);
 
 const StatCard = ({ title, value, subtitle, icon: Icon, color, isAlert, isBenchmark }: any) => (
   <div className={`p-6 rounded-3xl border transition-all relative overflow-hidden group ${isAlert ? 'bg-red-950/10 border-red-900/40 hover:border-red-500/50' : 'bg-branco-card border-branco-border hover:border-zinc-600'}`}>

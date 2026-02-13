@@ -1,4 +1,4 @@
-export type StoreLocation = 'Matriz' | 'Shopping' | 'Online';
+export type StoreLocation = 'Todas' | 'Fernandópolis' | 'Jales' | 'Votuporanga' | 'Rio Preto' | 'Santa Fé do Sul';
 
 export type LeadStatus = 'novo' | 'em_atendimento' | 'quente' | 'recuperado' | 'shadow';
 
@@ -29,6 +29,7 @@ export interface Lead {
   productInterest?: string;
   salespersonId: string;
   aiSummary?: string; // Briefing from Copilot
+  store: StoreLocation;
 }
 
 export interface Salesperson {

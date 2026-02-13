@@ -1,13 +1,23 @@
 import React from 'react';
 import { TEAM } from '../services/mockData';
-import { Crown, Star, ShoppingBag, Clock } from 'lucide-react';
+import { Crown, Star, ShoppingBag, Clock, MapPin, Users } from 'lucide-react';
+import { StoreLocation } from '../types';
 
-export const Team: React.FC = () => {
-  const me = TEAM[0]; // Single user
+interface TeamProps {
+  selectedStore: StoreLocation;
+}
+
+export const Team: React.FC<TeamProps> = ({ selectedStore }) => {
+  // Filter team based on store, or show all
+  const filteredTeam = TEAM.filter(m => selectedStore === 'Todas' || m.store === selectedStore);
+  
+  // Just for demo, pick the first one as "Me" or the top performer in that store
+  const me = filteredTeam.length > 0 ? filteredTeam[0] : TEAM[0]; 
 
   return (
     <div className="space-y-8">
       
+      {/* Featured Profile */}
       <div className="bg-maresias-card text-white rounded-3xl p-8 shadow-xl border border-maresias-border relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-maresias-blue rounded-full blur-[100px] opacity-20"></div>
         
@@ -22,7 +32,12 @@ export const Team: React.FC = () => {
           </div>
           
           <div className="text-center md:text-left flex-1">
-            <h2 className="text-3xl font-heading font-normal tracking-wide">{me.name}</h2>
+            <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
+               <h2 className="text-3xl font-heading font-normal tracking-wide">{me.name}</h2>
+               <span className="bg-zinc-900 border border-zinc-800 text-xs px-2 py-1 rounded-full text-zinc-400 flex items-center gap-1 mx-auto md:mx-0 w-fit">
+                 <MapPin size={10}/> {me.store}
+               </span>
+            </div>
             <p className="text-zinc-400 text-lg">{me.role}</p>
             <div className="flex items-center justify-center md:justify-start gap-4 mt-4">
                <div className="bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-xl backdrop-blur-sm">
@@ -30,9 +45,9 @@ export const Team: React.FC = () => {
                   <p className="text-2xl font-bold text-white">R$ {(me.monthlySales/1000).toFixed(1)}k</p>
                </div>
                <div className="bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-xl backdrop-blur-sm">
-                  <p className="text-xs uppercase tracking-wider text-zinc-500">Meta</p>
-                  <div className="flex items-center gap-1 text-2xl font-bold text-green-500">
-                    85%
+                  <p className="text-xs uppercase tracking-wider text-zinc-500">Leads Ativos</p>
+                  <div className="flex items-center gap-1 text-2xl font-bold text-copilot-glow">
+                    {me.leadsActive}
                   </div>
                </div>
             </div>
@@ -43,7 +58,7 @@ export const Team: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-maresias-card border border-maresias-border rounded-3xl p-6">
            <h3 className="font-heading font-normal tracking-wide text-lg mb-4 flex items-center gap-2 text-white">
-             <ShoppingBag className="text-maresias-blue" /> Vendas Recentes
+             <ShoppingBag className="text-maresias-blue" /> Vendas Recentes ({selectedStore === 'Todas' ? 'Rede' : selectedStore})
            </h3>
            <div className="space-y-4">
              {[1,2,3,4].map(i => (
@@ -68,19 +83,19 @@ export const Team: React.FC = () => {
 
         <div className="bg-maresias-card border border-maresias-border rounded-3xl p-6">
            <h3 className="font-heading font-normal tracking-wide text-lg mb-4 flex items-center gap-2 text-white">
-             <Clock className="text-maresias-blue" /> Itens Mais Vendidos (Hoje)
+             <Users className="text-maresias-blue" /> Lista da Equipe
            </h3>
            <div className="space-y-4">
-             {['Camiseta Maresias Basic', 'Boné Trucker', 'Pomada Matte'].map((item, i) => (
-               <div key={i} className="flex items-center justify-between p-3 border-b border-zinc-800 last:border-0">
+             {filteredTeam.map((member, i) => (
+               <div key={member.id} className="flex items-center justify-between p-3 border-b border-zinc-800 last:border-0">
                   <div className="flex items-center gap-3">
-                    <div className="text-lg font-heading text-zinc-600 w-6">0{i+1}</div>
+                    <img src={member.avatar} className="w-8 h-8 rounded-full bg-zinc-800" alt=""/>
                     <div>
-                      <h4 className="font-bold text-sm text-white">{item}</h4>
-                      <p className="text-xs text-zinc-500">Estoque: {10-i} un</p>
+                      <h4 className="font-bold text-sm text-white">{member.name}</h4>
+                      <p className="text-xs text-zinc-500">{member.role}</p>
                     </div>
                   </div>
-                  <span className="font-bold text-white">{4-i} un</span>
+                  <span className="text-xs font-bold text-white bg-zinc-900 px-2 py-1 rounded">{member.store}</span>
                </div>
              ))}
            </div>
